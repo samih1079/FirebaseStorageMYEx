@@ -17,6 +17,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
@@ -44,6 +46,7 @@ public class FileExActivity extends AppCompatActivity
     private Uri file;
     private StorageMetadata metadata;
     StorageReference storageRef;
+    private Uri downloadUrl;
 
 
     @Override
@@ -69,7 +72,7 @@ public class FileExActivity extends AppCompatActivity
         {
             if(v==btnDwn)
             {
-
+                downlaod(downloadUrl);
             }
             if(v==btnUp)
             {
@@ -148,7 +151,7 @@ public class FileExActivity extends AppCompatActivity
         if (data != null) {
             try {
                 bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
-                imgV.setImageBitmap(bm);
+               // imgV.setImageBitmap(bm);
                 uploadUri(data.getData());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -159,7 +162,7 @@ public class FileExActivity extends AppCompatActivity
     private void onCaptureImageResult(Intent data) {
         Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+        //thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
 
         File destination = new File(Environment.getExternalStorageDirectory(),
                 System.currentTimeMillis() + ".jpg");
@@ -177,7 +180,7 @@ public class FileExActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-        imgV.setImageBitmap(thumbnail);
+       // imgV.setImageBitmap(thumbnail);
         uploadUri(data.getData());
     }
 
@@ -223,7 +226,7 @@ public class FileExActivity extends AppCompatActivity
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 // Handle successful uploads on complete
-                Uri downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
+                 downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
                 progressBar.setProgress(0);
                 progressBar.setVisibility(View.GONE);
             }
@@ -232,6 +235,18 @@ public class FileExActivity extends AppCompatActivity
 
     private void downlaod(Uri uri)
     {
+        // Reference to an image file in Firebase Storage
+        FirebaseStorage storage=FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReferenceFromUrl(uri.toString());
+
+// ImageView in your Activity
+
+
+// Load the image using Glide
+        Glide.with(this /* context */)
+                .using(new FirebaseImageLoader())
+                .load(storageReference)
+                .into(imgV);
 
     }
 
